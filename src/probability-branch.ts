@@ -148,6 +148,7 @@ interface ProbabilityBranchCreator {
 }
 
 /**
+ * ## Usage
  * Create a new `ProbabilityBranch` instance
  * @param options.limit The maximum number of times this branch can be run, default is 1
  * @method `pb.setGenerator` Sets a custom global random generator
@@ -155,6 +156,7 @@ interface ProbabilityBranchCreator {
  * @method `pb.setSeed` Sets the seed for the global random generator
  * @method `pb.getSeed` Gets the current seed of the global random generator
  * @method `pb.getCount` Gets the count of random numbers generated globally
+ *
  * __PKG_INFO__
  */
 export const pb: ProbabilityBranchCreator = (options?: Partial<ProbabilityBranchOptions>) =>
