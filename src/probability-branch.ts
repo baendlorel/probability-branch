@@ -5,7 +5,7 @@ import { MersenneTwister } from './mersenne-twister.js';
 type Fn<T extends unknown[] = unknown[], R extends unknown = unknown> = (...args: T) => R;
 
 class ProbabilityBranch {
-  static mersenneTwister = new MersenneTwister(PRIVATE);
+  private static mersenneTwister = new MersenneTwister(PRIVATE);
 
   private sum = 0;
   private probabilities: number[] = [];
@@ -16,6 +16,32 @@ class ProbabilityBranch {
    */
   get version() {
     return '__VERSION__';
+  }
+
+  /**
+   * Set the seed for the internal Mersenne Twister generator
+   * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
+   * @param seed - The seed to initialize the Mersenne Twister generator
+   */
+  setSeed(seed: number) {
+    ProbabilityBranch.mersenneTwister.setSeed(PRIVATE, seed);
+    return this;
+  }
+
+  /**
+   * Get the seed for the internal Mersenne Twister generator
+   * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
+   */
+  getSeed() {
+    return ProbabilityBranch.mersenneTwister.getSeed(PRIVATE);
+  }
+
+  /**
+   * Get how many random numbers have been generated since the Mersenne Twister generator is initialized
+   * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
+   */
+  getCount() {
+    return ProbabilityBranch.mersenneTwister.getCount(PRIVATE);
   }
 
   /**
@@ -48,7 +74,7 @@ class ProbabilityBranch {
 
   /**
    * Run this probability branch with a given probability
-   * @param probability if not provided, a random value will be generated with Mersenne Twister
+   * @param probability if not provided, a random value will be generated with a internal Mersenne Twister generator
    * @returns what the handler returns
    */
   run(probability: number = NOT_PROVIDED as any): unknown {

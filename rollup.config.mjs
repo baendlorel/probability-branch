@@ -33,6 +33,7 @@ export default [
       replace({
         preventAssignment: true, // 推荐加上
         __VERSION__: pkg.version,
+        __NAME__: 'ProbablityBranch',
       }),
       resolve(),
       commonjs(),

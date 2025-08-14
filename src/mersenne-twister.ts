@@ -35,14 +35,16 @@ export class MersenneTwister {
   /**
    * Get how many random numbers have been generated since initialization
    */
-  getCount(): number {
+  getCount(priv: symbol): number {
+    preventPublicCalling(priv);
     return this.count;
   }
 
   /**
    * Get the seed that once used to initialize this generator
    */
-  getSeed(): number {
+  getSeed(priv: symbol): number {
+    preventPublicCalling(priv);
     return this.seed;
   }
 
@@ -50,7 +52,8 @@ export class MersenneTwister {
    * Initialize the generator with a new seed
    * @param seed
    */
-  setSeed(seed: number): void {
+  setSeed(priv: symbol, seed: number): void {
+    preventPublicCalling(priv);
     this.init(PRIVATE, seed);
   }
 
