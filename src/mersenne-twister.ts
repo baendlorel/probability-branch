@@ -1,16 +1,18 @@
 import { PRIVATE } from './common.js';
 import { preventPublicCalling } from './error.js';
 
-export class MersenneTwister {
-  private static readonly N = 624;
-  private static readonly M = 397;
-  private static readonly MATRIX_A = 0x9908b0df;
-  private static readonly UPPER_MASK = 0x80000000;
-  private static readonly LOWER_MASK = 0x7fffffff;
-  private static readonly K = 1.0 / 0x100000000;
+const enum Mersenne {
+  N = 624,
+  M = 397,
+  MATRIX_A = 0x9908b0df,
+  UPPER_MASK = 0x80000000,
+  LOWER_MASK = 0x7fffffff,
+  K = 1.0 / 0x100000000,
+}
 
-  private mt: number[] = new Array(MersenneTwister.N);
-  private mti: number = MersenneTwister.N + 1;
+export class MersenneTwister {
+  private mt: number[] = new Array(Mersenne.N);
+  private mti: number = Mersenne.N + 1;
   private seed: number;
   private count: number = 0;
 
@@ -23,7 +25,7 @@ export class MersenneTwister {
     preventPublicCalling(priv);
 
     this.mt[0] = s >>> 0;
-    for (this.mti = 1; this.mti < MersenneTwister.N; this.mti++) {
+    for (this.mti = 1; this.mti < Mersenne.N; this.mti++) {
       this.mt[this.mti] =
         (1812433253 * (this.mt[this.mti - 1] ^ (this.mt[this.mti - 1] >>> 30)) + this.mti) >>> 0;
     }
@@ -57,27 +59,20 @@ export class MersenneTwister {
     preventPublicCalling(priv);
 
     let y: number;
-    const mag01 = [0x0, MersenneTwister.MATRIX_A];
+    const mag01 = [0x0, Mersenne.MATRIX_A];
 
-    if (this.mti >= MersenneTwister.N) {
+    if (this.mti >= Mersenne.N) {
       let kk: number;
-      for (kk = 0; kk < MersenneTwister.N - MersenneTwister.M; kk++) {
-        y =
-          (this.mt[kk] & MersenneTwister.UPPER_MASK) |
-          (this.mt[kk + 1] & MersenneTwister.LOWER_MASK);
-        this.mt[kk] = this.mt[kk + MersenneTwister.M] ^ (y >>> 1) ^ mag01[y & 0x1];
+      for (kk = 0; kk < Mersenne.N - Mersenne.M; kk++) {
+        y = (this.mt[kk] & Mersenne.UPPER_MASK) | (this.mt[kk + 1] & Mersenne.LOWER_MASK);
+        this.mt[kk] = this.mt[kk + Mersenne.M] ^ (y >>> 1) ^ mag01[y & 0x1];
       }
-      for (; kk < MersenneTwister.N - 1; kk++) {
-        y =
-          (this.mt[kk] & MersenneTwister.UPPER_MASK) |
-          (this.mt[kk + 1] & MersenneTwister.LOWER_MASK);
-        this.mt[kk] =
-          this.mt[kk + (MersenneTwister.M - MersenneTwister.N)] ^ (y >>> 1) ^ mag01[y & 0x1];
+      for (; kk < Mersenne.N - 1; kk++) {
+        y = (this.mt[kk] & Mersenne.UPPER_MASK) | (this.mt[kk + 1] & Mersenne.LOWER_MASK);
+        this.mt[kk] = this.mt[kk + (Mersenne.M - Mersenne.N)] ^ (y >>> 1) ^ mag01[y & 0x1];
       }
-      y =
-        (this.mt[MersenneTwister.N - 1] & MersenneTwister.UPPER_MASK) |
-        (this.mt[0] & MersenneTwister.LOWER_MASK);
-      this.mt[MersenneTwister.N - 1] = this.mt[MersenneTwister.M - 1] ^ (y >>> 1) ^ mag01[y & 0x1];
+      y = (this.mt[Mersenne.N - 1] & Mersenne.UPPER_MASK) | (this.mt[0] & Mersenne.LOWER_MASK);
+      this.mt[Mersenne.N - 1] = this.mt[Mersenne.M - 1] ^ (y >>> 1) ^ mag01[y & 0x1];
       this.mti = 0;
     }
 
@@ -96,6 +91,6 @@ export class MersenneTwister {
    * Generate a random number in the range [0, 1)
    */
   random(): number {
-    return this.randomInt(PRIVATE) * MersenneTwister.K;
+    return this.randomInt(PRIVATE) * Mersenne.K;
   }
 }

@@ -43,28 +43,30 @@ class ProbabilityBranch {
 
   /**
    * Add a branch with a given probability and handler
-   * @param pointProbability the probability of this branch, must be a non-negative number
+   * - if the weight is 0, this branch will be ignored
+   * - all weights will be summed up, and the probability of entering each branch is `weight / sum`
+   * @param weight the probability of this branch, must be a non-negative number
    * @param handler the function to call when this branch is selected
    */
-  add(pointProbability: number, handler: Fn): ProbabilityBranch {
-    if (typeof pointProbability !== 'number') {
+  add(weight: number, handler: Fn): ProbabilityBranch {
+    if (typeof weight !== 'number') {
       throw err(`'pointProbability' must be a number`);
     }
     if (typeof handler !== 'function') {
       throw err(`'handler' must be a function`);
     }
-    if (pointProbability === 0) {
+    if (weight === 0) {
       return this;
     }
-    if (pointProbability < 0) {
+    if (weight < 0) {
       throw err(`'pointProbability' must be non-negative`);
     }
-    if (pointProbability > MAX_NUM) {
+    if (weight > MAX_NUM) {
       throw err(`'pointProbability' must < ${MAX_NUM}`);
     }
 
-    this.sum += pointProbability;
-    this.probabilities.push(pointProbability);
+    this.sum += weight;
+    this.probabilities.push(weight);
     this.handlers.push(handler);
     return this;
   }
@@ -100,4 +102,7 @@ class ProbabilityBranch {
   }
 }
 
+/**
+ * Create a new ProbabilityBranch instance
+ */
 export const pb = () => new ProbabilityBranch(PRIVATE);
