@@ -49,20 +49,67 @@ Create a new probability branch instance.
 - `options.limit`: Maximum number of times the branch can be run (default: 1, set to 0 for unlimited).
 - **Returns** An `ProbabilityBranch` instance.
 
-### `instance.add(weight: number, handler: Fn)`
+### `instance.br(weight: number, handler: Fn)`
 
 Add a branch with a given probability and handler.
 
 - `weight`: Non-negative number, probability weight for this branch.
 - `handler`: Function to execute if this branch is selected.
 
-### `instance.run(probability?: number)`
+### `instance.run(probability?: number): ProbabilityBranchResult`
 
 Run the probability branch. If `probability` is not provided, a random value is generated.
 
 - Default random number generator is Mersenne Twister.
 
-- **Returns** the result of the selected handler.
+- **Returns** an object below:
+
+```typescript
+interface ProbabilityBranchResult {
+  /**
+   * The probability value used for this run
+   */
+  probability: number;
+
+  /**
+   * The total sum of all branch weights
+   */
+  sum: number;
+
+  /**
+   * How many times this branch has been run
+   */
+  count: number;
+
+  /**
+   * The maximum number of times this branch can be run
+   * - `0` means unlimited runs
+   */
+  limit: number;
+
+  /**
+   * All branches in this instance
+   * - this is a reference to the real executed branches, be careful when modifying it
+   */
+  branches: Branch[];
+
+  /**
+   * Whether `branches.length` is `0`
+   */
+  readonly empty: boolean;
+
+  /**
+   * The index of the entered branch
+   */
+  index: number;
+
+  /**
+   * The value returned by the entered handler
+   * - if `branches.length` is `0`, this will be `undefined`
+   */
+  returned: unknown;
+}
+```
 
 ### `instance.getCount(): number`
 
@@ -129,7 +176,8 @@ You can import the Mersenne Twister directly if you want to use it as a custom r
 import { MersenneTwister } from 'probability-branch';
 
 new MersenneTwister(); // equivalent to `new MersenneTwister(0)`
-new MersenneTwister(23);
+const mt = new MersenneTwister(23);
+mt.random(); // generates a random [0,1) number
 ```
 
 ---
