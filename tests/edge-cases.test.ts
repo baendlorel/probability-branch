@@ -32,14 +32,14 @@ describe('Edge Cases', () => {
     const branch = pb({ limit: 0 })
       .br(1, () => 'A')
       .br(1, () => 'B');
-    expect(branch.run(999)).toBe('B');
+    expect(branch.run(999).returned).toBe('B');
   });
 
   it('run with probability very close to sum selects last branch', () => {
     const branch = pb({ limit: 0 })
       .br(1, () => 'A')
       .br(1, () => 'B');
-    expect(branch.run(1.999999999)).toBe('B');
+    expect(branch.run(1.999999999).returned).toBe('B');
   });
 
   it('limit=0 allows unlimited runs', () => {
@@ -52,12 +52,12 @@ describe('Edge Cases', () => {
     const branch = pb({ limit: 0 })
       .br(Number.MAX_SAFE_INTEGER, () => 'big')
       .br(1, () => 'small');
-    expect(branch.run(0)).toBe('big');
+    expect(branch.run(0).returned).toBe('big');
   });
 
   it('run after clear returns undefined', () => {
     const branch = pb().br(1, () => 1);
     branch.run();
-    expect(() => branch.run()).throws();
+    expect(() => branch.run().returned).throws();
   });
 });

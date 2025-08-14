@@ -9,16 +9,16 @@ describe('ProbabilityBranch Core', () => {
       .br(2, () => result.push(2))
       .br(3, () => result.push(3));
 
-    branch.run(0); // select first
-    branch.run(1.5); // select second
-    branch.run(3.5); // select third
+    branch.run(0);
+    branch.run(1.5);
+    branch.run(3.5);
 
     expect(result).toEqual([1, 2, 3]);
   });
 
   it('returns undefined if no branches', () => {
     const branch = pb();
-    expect(branch.run(0)).toBeUndefined();
+    expect(branch.run(0).returned).toBeUndefined();
   });
 
   it('limit works: branch only runs specified times', () => {

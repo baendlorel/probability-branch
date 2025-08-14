@@ -1,6 +1,7 @@
 // @ts-check
 import { readdirSync, readFileSync, existsSync, writeFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import console from 'node:console';
 
 // package.json
 import pkg from './package.json' with { type: 'json' };

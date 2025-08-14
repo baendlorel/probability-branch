@@ -7,7 +7,7 @@ const enum Mersenne {
   MATRIX_A = 0x9908b0df,
   UPPER_MASK = 0x80000000,
   LOWER_MASK = 0x7fffffff,
-  K = 1.0 / 0x100000000,
+  K = 2.3283064365386963e-10, // 1.0 / 0x100000000,
 }
 
 export class MersenneTwister implements RandomGenerator {

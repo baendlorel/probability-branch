@@ -7,7 +7,7 @@ let gen: RandomGenerator = defaultGen;
 class ProbabilityBranch {
   private count: number = 0;
   private sum: number = 0;
-  private branches: { handler: Fn; weight: number }[] = [];
+  private branches: { handler: AnyFn; weight: number }[] = [];
 
   // options
   private limit: number;
@@ -36,7 +36,7 @@ class ProbabilityBranch {
    * @param weight the probability of this branch, must be a non-negative number
    * @param handler the function to call when this branch is selected
    */
-  br(weight: number, handler: Fn): ProbabilityBranch {
+  br(weight: number, handler: AnyFn): ProbabilityBranch {
     expect(typeof weight === 'number', `'pointProbability' must be a number`);
     expect(typeof handler === 'function', `'handler' must be a function`);
     expect(weight >= 0, `'pointProbability' must be non-negative`);
@@ -57,6 +57,7 @@ class ProbabilityBranch {
    * - will **not** throw if `probability` is `NaN` or `Infinity`
    * @returns what the handler returns
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   run(probability: number = NOT_PROVIDED as any): ProbabilityBranchResult {
     if (Object.is(probability, NOT_PROVIDED)) {
       probability = gen.random() * this.sum;
@@ -179,8 +180,8 @@ pb.setGenerator = function (generator: RandomGenerator) {
   if (typeof generator.setSeed === 'function') {
     o.setSeed = setSeed.bind(generator);
   } else {
-    o.setSeed = () => {};
-    warn(`'setSeed' is not implemented, set to () => {}`);
+    o.setSeed = () => undefined;
+    warn(`'setSeed' is not implemented, set to () => undefined`);
   }
 
   return pb;

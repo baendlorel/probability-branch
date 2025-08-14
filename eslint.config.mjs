@@ -1,7 +1,6 @@
 // @ts-check
 /**
  * Typescript ESLint configuration file.
- * @version 2025.06.29
  */
 
 import eslint from '@eslint/js';
@@ -22,6 +21,7 @@ export default tseslint.config(
   },
   {
     rules: {
+      '@typescript-eslint/no-inferrable-types': 'off',
       '@typescript-eslint/prefer-for-of': 'off',
       '@typescript-eslint/unified-signatures': 'off',
       '@typescript-eslint/no-unused-vars': [

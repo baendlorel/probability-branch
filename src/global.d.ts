@@ -1,4 +1,5 @@
-type Fn<T extends unknown[] = unknown[], R extends unknown = unknown> = (...args: T) => R;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFn = (...args: any[]) => any;
 
 interface ProbabilityBranchOptions {
   /**
@@ -9,7 +10,7 @@ interface ProbabilityBranchOptions {
 }
 
 interface Branch {
-  handler: Fn;
+  handler: AnyFn;
   weight: number;
 }
 

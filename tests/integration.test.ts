@@ -3,7 +3,7 @@ import { pb } from '../src/probability-branch.js';
 
 describe('Integration', () => {
   it('randomly selects branch', () => {
-    const values: string[] = [];
+    const values = [] as string[];
     const branch = pb({ limit: 0 })
       .br(1, () => values.push('A'))
       .br(1, () => values.push('B'));
@@ -28,7 +28,7 @@ describe('Integration', () => {
     const branch = pb({ limit: 0 })
       .br(1, () => 'A')
       .br(1, () => 'B');
-    expect(branch.run()).toBe('B');
+    expect(branch.run().returned).toBe('B');
     pb.restoreDefaultGenerator();
   });
 });
