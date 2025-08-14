@@ -5,7 +5,7 @@ import { MersenneTwister } from './mersenne-twister.js';
 type Fn<T extends unknown[] = unknown[], R extends unknown = unknown> = (...args: T) => R;
 
 class ProbabilityBranch {
-  private static mersenneTwister = new MersenneTwister(PRIVATE);
+  private static mersenneTwister = new MersenneTwister();
 
   private sum = 0;
   private probabilities: number[] = [];
@@ -24,7 +24,7 @@ class ProbabilityBranch {
    * @param seed - The seed to initialize the Mersenne Twister generator
    */
   setSeed(seed: number) {
-    ProbabilityBranch.mersenneTwister.setSeed(PRIVATE, seed);
+    ProbabilityBranch.mersenneTwister.setSeed(seed);
     return this;
   }
 
@@ -33,7 +33,7 @@ class ProbabilityBranch {
    * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
    */
   getSeed() {
-    return ProbabilityBranch.mersenneTwister.getSeed(PRIVATE);
+    return ProbabilityBranch.mersenneTwister.getSeed();
   }
 
   /**
@@ -41,7 +41,7 @@ class ProbabilityBranch {
    * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
    */
   getCount() {
-    return ProbabilityBranch.mersenneTwister.getCount(PRIVATE);
+    return ProbabilityBranch.mersenneTwister.getCount();
   }
 
   /**
