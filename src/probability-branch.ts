@@ -23,7 +23,7 @@ class ProbabilityBranch {
   /**
    * Get how many times this instance has been run
    */
-  getCount() {
+  getCount(): number {
     return this.count;
   }
 
