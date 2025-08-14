@@ -5,10 +5,9 @@ import { MersenneTwister } from './mersenne-twister.js';
 const defaultGen = new MersenneTwister();
 let gen: RandomGenerator = defaultGen;
 class ProbabilityBranch {
-  private sum: number = 0;
-  private probabilities: number[] = [];
-  private handlers: Fn[] = [];
   private count: number = 0;
+  private sum: number = 0;
+  private branches: { handler: Fn; weight: number }[] = [];
 
   // options
   private limit: number;
@@ -29,13 +28,15 @@ class ProbabilityBranch {
   }
 
   /**
+   * ### `br` means Branch
+   *
    * Add a branch with a given probability and handler
    * - if the weight is 0, this branch will be ignored
    * - all weights will be summed up, and the probability of entering each branch is `weight / sum`
    * @param weight the probability of this branch, must be a non-negative number
    * @param handler the function to call when this branch is selected
    */
-  add(weight: number, handler: Fn): ProbabilityBranch {
+  br(weight: number, handler: Fn): ProbabilityBranch {
     expect(typeof weight === 'number', `'pointProbability' must be a number`);
     expect(typeof handler === 'function', `'handler' must be a function`);
     expect(weight >= 0, `'pointProbability' must be non-negative`);
@@ -46,8 +47,7 @@ class ProbabilityBranch {
     }
 
     this.sum += weight;
-    this.probabilities.push(weight);
-    this.handlers.push(handler);
+    this.branches.push({ weight, handler });
     return this;
   }
 
@@ -57,7 +57,7 @@ class ProbabilityBranch {
    * - will **not** throw if `probability` is `NaN` or `Infinity`
    * @returns what the handler returns
    */
-  run(probability: number = NOT_PROVIDED as any): unknown {
+  run(probability: number = NOT_PROVIDED as any): ProbabilityBranchResult {
     if (Object.is(probability, NOT_PROVIDED)) {
       probability = gen.random() * this.sum;
     }
@@ -70,40 +70,43 @@ class ProbabilityBranch {
       `'probability' must be a number, please check your input or the generator`
     );
 
-    if (this.sum === 0 || this.handlers.length === 0) {
-      return;
+    const result: ProbabilityBranchResult = {
+      probability,
+      sum: this.sum,
+      count: this.count,
+      limit: this.limit,
+      branches: this.branches,
+      get empty() {
+        return this.branches.length === 0;
+      },
+
+      // wait to be set
+      index: NaN,
+      returned: undefined,
+    };
+
+    if (this.sum === 0 || this.branches.length === 0) {
+      return result;
     }
 
     this.count++;
 
     let cumulative = 0;
-    const len = this.probabilities.length;
+    const len = this.branches.length;
     for (let i = 0; i < len; i++) {
-      cumulative += this.probabilities[i];
+      const br = this.branches[i];
+      cumulative += br.weight;
       if (probability < cumulative) {
-        const r = this.handlers[i]();
-        this.clear(PRIVATE); // clear the branch after running
-        return r;
+        result.index = i;
+        result.returned = br.handler();
+        return result;
       }
     }
 
     // & prevent some edge cases where the probability is very close to the sum
-    const r = this.handlers[len - 1]();
-    this.clear(PRIVATE); // clear the branch after running
-    return r;
-  }
-
-  private clear(priv: symbol) {
-    expectPrivate(priv);
-    if (this.limit === 0) {
-      return;
-    }
-    if (this.limit > this.count) {
-      return;
-    }
-    this.sum = 0;
-    this.probabilities.length = 0;
-    this.handlers.length = 0;
+    result.returned = this.branches[len - 1].handler();
+    result.index = len - 1;
+    return result;
   }
 }
 

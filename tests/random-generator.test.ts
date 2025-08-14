@@ -13,7 +13,7 @@ describe('Random Generator Control', () => {
     pb.setSeed(1);
     const before = pb.getCount();
     pb()
-      .add(1, () => 1)
+      .br(1, () => 1)
       .run();
     const after = pb.getCount();
     expect(after).toBeGreaterThan(before);

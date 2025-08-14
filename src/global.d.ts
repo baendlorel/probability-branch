@@ -8,6 +8,56 @@ interface ProbabilityBranchOptions {
   limit: number;
 }
 
+interface Branch {
+  handler: Fn;
+  weight: number;
+}
+
+interface ProbabilityBranchResult {
+  /**
+   * The probability value used for this run
+   */
+  probability: number;
+
+  /**
+   * The total sum of all branch weights
+   */
+  sum: number;
+
+  /**
+   * How many times this branch has been run
+   */
+  count: number;
+
+  /**
+   * The maximum number of times this branch can be run
+   * - `0` means unlimited runs
+   */
+  limit: number;
+
+  /**
+   * All branches in this instance
+   * - this is a reference to the real executed branches, be careful when modifying it
+   */
+  branches: Branch[];
+
+  /**
+   * Whether `branches.length` is `0`
+   */
+  readonly empty: boolean;
+
+  /**
+   * The index of the entered branch
+   */
+  index: number;
+
+  /**
+   * The value returned by the entered handler
+   * - if `branches.length` is `0`, this will be `undefined`
+   */
+  returned: unknown;
+}
+
 interface RandomGenerator {
   random(): number;
 

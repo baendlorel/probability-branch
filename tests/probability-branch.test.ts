@@ -5,9 +5,9 @@ describe('ProbabilityBranch Core', () => {
   it('selects correct branch by manual probability', () => {
     const result: number[] = [];
     const branch = pb({ limit: 0 })
-      .add(1, () => result.push(1))
-      .add(2, () => result.push(2))
-      .add(3, () => result.push(3));
+      .br(1, () => result.push(1))
+      .br(2, () => result.push(2))
+      .br(3, () => result.push(3));
 
     branch.run(0); // select first
     branch.run(1.5); // select second
@@ -23,7 +23,7 @@ describe('ProbabilityBranch Core', () => {
 
   it('limit works: branch only runs specified times', () => {
     const result: number[] = [];
-    const branch = pb({ limit: 2 }).add(1, () => result.push(1));
+    const branch = pb({ limit: 2 }).br(1, () => result.push(1));
     branch.run();
     branch.run();
     expect(() => branch.run()).toThrow();
@@ -33,7 +33,7 @@ describe('ProbabilityBranch Core', () => {
   it('getCount returns run count', () => {
     const branch = pb();
     expect(branch.getCount()).toBe(0);
-    branch.add(1, () => 1).run();
+    branch.br(1, () => 1).run();
     expect(branch.getCount()).toBe(1);
   });
 });

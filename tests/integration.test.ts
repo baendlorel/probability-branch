@@ -5,8 +5,8 @@ describe('Integration', () => {
   it('randomly selects branch', () => {
     const values: string[] = [];
     const branch = pb({ limit: 0 })
-      .add(1, () => values.push('A'))
-      .add(1, () => values.push('B'));
+      .br(1, () => values.push('A'))
+      .br(1, () => values.push('B'));
     branch.run();
     expect(['A', 'B']).toContain(values[0]);
   });
@@ -26,8 +26,8 @@ describe('Integration', () => {
     }
     pb.setGenerator(new FixedGen());
     const branch = pb({ limit: 0 })
-      .add(1, () => 'A')
-      .add(1, () => 'B');
+      .br(1, () => 'A')
+      .br(1, () => 'B');
     expect(branch.run()).toBe('B');
     pb.restoreDefaultGenerator();
   });
