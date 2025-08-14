@@ -1,5 +1,11 @@
+// @ts-check
+import { readdirSync, readFileSync, existsSync, writeFileSync, statSync } from 'node:fs';
+import path from 'node:path';
+
+// package.json
 import pkg from './package.json' with { type: 'json' };
-import path from 'path';
+
+// plugins
 import dts from 'rollup-plugin-dts';
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
@@ -9,6 +15,11 @@ import terser from '@rollup/plugin-terser';
 import babel from '@rollup/plugin-babel';
 import replace from '@rollup/plugin-replace';
 
+// # common options
+
+/**
+ * build config
+ */
 const tsconfig = './tsconfig.build.json';
 
 /**
@@ -27,8 +38,59 @@ const replaceOpts = {
   __NAME__: pkg.name.replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase()),
 };
 
+// # private plugins
+
 /**
- * @type {import('rollup').RollupOptions}
+ * Find all .d.ts files in src and prepend their content to dist/index.d.ts
+ */
+function prependAllDts() {
+  return {
+    name: 'prepend-all-dts',
+    writeBundle() {
+      const srcDir = path.resolve('src');
+      const distDts = path.resolve('dist/index.d.ts');
+      if (!existsSync(distDts)) {
+        console.warn(`Warning: ${distDts} does not exist, skipping prependAllDts.`);
+        return;
+      }
+      const dtsFiles = [];
+      function findDtsFiles(dir) {
+        for (const file of readdirSync(dir)) {
+          const fullPath = path.join(dir, file);
+          if (!existsSync(fullPath)) {
+            throw new Error(`File not found: ${fullPath}`);
+          }
+          if (file.endsWith('.d.ts')) {
+            dtsFiles.push(fullPath);
+            continue;
+          }
+          const stat = statSync(fullPath);
+          if (stat.isDirectory()) {
+            findDtsFiles(fullPath);
+          }
+        }
+      }
+
+      findDtsFiles(srcDir);
+      const allDtsContent = [];
+      for (let i = 0; i < dtsFiles.length; i++) {
+        const relativePath = path.relative(srcDir, dtsFiles[i]);
+        const content = readFileSync(dtsFiles[i], 'utf8');
+        allDtsContent.push(`// # from: ${relativePath}`, content);
+      }
+      const indexContent = readFileSync(distDts, 'utf8');
+      allDtsContent.push('// # index.d.ts', indexContent);
+
+      const content = allDtsContent.join('\n');
+      writeFileSync(distDts, content, 'utf8');
+    },
+  };
+}
+
+// # main options
+
+/**
+ * @type {import('rollup').RollupOptions[]}
  */
 export default [
   // * Main
@@ -83,6 +145,6 @@ export default [
   {
     input: 'src/index.ts',
     output: [{ file: 'dist/index.d.ts', format: 'es' }],
-    plugins: [alias(aliasOpts), replace(replaceOpts), dts({ tsconfig })],
+    plugins: [alias(aliasOpts), replace(replaceOpts), dts({ tsconfig }), prependAllDts()],
   },
 ];
