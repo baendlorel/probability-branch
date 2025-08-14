@@ -1,10 +1,7 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
+import pkg from '../package.json' with { type: 'json' };
 // @ts-ignore
 import { ReflectDeep } from '../dist/index.mjs';
-
-const pkg = JSON.parse(readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf-8'));
 
 describe('测试版本获取', () => {
   it('ReflectDeep.version should match package.json version', () => {
