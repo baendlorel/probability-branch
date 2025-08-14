@@ -1,5 +1,5 @@
 import { MAX_NUM, NOT_PROVIDED, PRIVATE } from './common.js';
-import { err, preventPublicCalling } from './error.js';
+import { err, expectPrivate } from './expect.js';
 import { MersenneTwister } from './mersenne-twister.js';
 
 let gen: RandomGenerator = new MersenneTwister();
@@ -13,7 +13,7 @@ class ProbabilityBranch {
   private limit: number;
 
   constructor(priv: symbol, opts?: Partial<ProbabilityBranchOptions>) {
-    preventPublicCalling(priv);
+    expectPrivate(priv);
 
     const { limit = 1 } = Object(opts) as ProbabilityBranchOptions;
     this.limit = limit;
@@ -124,7 +124,7 @@ class ProbabilityBranch {
   }
 
   private clear(priv: symbol) {
-    preventPublicCalling(priv);
+    expectPrivate(priv);
     if (this.limit === 0) {
       return;
     }

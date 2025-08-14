@@ -6,8 +6,8 @@ export function expect(o: unknown, message: string): void {
   }
 }
 
-export function preventPublicCalling(priv: symbol): asserts priv is typeof PRIVATE {
+export function expectPrivate(priv: symbol, msg = 'This method is private!') {
   if (priv !== PRIVATE) {
-    throw err(`This method is private!`);
+    throw new Error('[__NAME__] ' + msg);
   }
 }

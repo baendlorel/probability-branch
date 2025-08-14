@@ -1,5 +1,5 @@
 import { PRIVATE } from './common.js';
-import { preventPublicCalling } from './error.js';
+import { expectPrivate } from './expect.js';
 
 const enum Mersenne {
   N = 624,
@@ -22,7 +22,7 @@ export class MersenneTwister implements RandomGenerator {
   }
 
   private init(priv: symbol, s: number) {
-    preventPublicCalling(priv);
+    expectPrivate(priv);
 
     this.mt[0] = s >>> 0;
     for (this.mti = 1; this.mti < Mersenne.N; this.mti++) {
@@ -56,7 +56,7 @@ export class MersenneTwister implements RandomGenerator {
   }
 
   private randomInt(priv: symbol): number {
-    preventPublicCalling(priv);
+    expectPrivate(priv);
 
     let y: number;
     const mag01 = [0x0, Mersenne.MATRIX_A];
