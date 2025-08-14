@@ -1,4 +1,4 @@
-import { MAX_NUM, NOT_PROVIDED, PRIVATE } from './common.js';
+import { isSafeInteger, MAX_NUM, NOT_PROVIDED, PRIVATE } from './common.js';
 import { expect, expectPrivate, warn } from './expect.js';
 import { MersenneTwister } from './mersenne-twister.js';
 
@@ -18,6 +18,7 @@ class ProbabilityBranch {
 
     const { limit = 1 } = Object(opts) as ProbabilityBranchOptions;
     this.limit = limit;
+    expect(limit >= 0 && isSafeInteger(limit), `'limit' must be a non-negative integer`);
   }
 
   /**
@@ -53,13 +54,17 @@ class ProbabilityBranch {
   /**
    * Run this probability branch with a given probability
    * @param probability if not provided, a random value will be generated with a random number generator(default is Mersenne Twister)
+   * - will **not** throw if `probability` is `NaN` or `Infinity`
    * @returns what the handler returns
    */
   run(probability: number = NOT_PROVIDED as any): unknown {
     if (Object.is(probability, NOT_PROVIDED)) {
       probability = gen.random() * this.sum;
     }
-    expect(this.limit >= this.count, `This branch can only be run ${this.limit} time(s)`);
+    if (this.limit > 0) {
+      expect(this.limit > this.count, `This branch can only be run ${this.limit} time(s)`);
+    }
+
     expect(
       typeof probability === 'number',
       `'probability' must be a number, please check your input or the generator`

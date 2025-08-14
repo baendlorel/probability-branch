@@ -31,8 +31,10 @@ import { pb } from 'probability-branch';
 
 // Create a probability branch instance
 pb()
-  .add(0.7, () => console.log('Branch A'))
-  .add(0.3, () => console.log('Branch B'))
+  .add(70, () => console.log('Branch A'))
+  .add(30, () => console.log('Branch B'))
+  .add(23.3, () => console.log('Branch C'))
+  .add(103.6, () => console.log('Branch D'))
   .run(); // Randomly runs one branch based on weights
 ```
 
