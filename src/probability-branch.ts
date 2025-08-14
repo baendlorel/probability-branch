@@ -2,17 +2,21 @@ import { MAX_NUM, NOT_PROVIDED, PRIVATE } from './common.js';
 import { err, preventPublicCalling } from './error.js';
 import { MersenneTwister } from './mersenne-twister.js';
 
-type Fn<T extends unknown[] = unknown[], R extends unknown = unknown> = (...args: T) => R;
-
+let gen: RandomGenerator = new MersenneTwister();
 class ProbabilityBranch {
-  private static mersenneTwister = new MersenneTwister();
-
-  private sum = 0;
+  private sum: number = 0;
   private probabilities: number[] = [];
   private handlers: Fn[] = [];
+  private count: number = 0;
 
-  constructor(priv: symbol) {
+  // options
+  private limit: number;
+
+  constructor(priv: symbol, opts?: Partial<ProbabilityBranchOptions>) {
     preventPublicCalling(priv);
+
+    const { limit = 1 } = Object(opts) as ProbabilityBranchOptions;
+    this.limit = limit;
   }
 
   /**
@@ -20,8 +24,8 @@ class ProbabilityBranch {
    * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
    * @param seed - The seed to initialize the Mersenne Twister generator
    */
-  setSeed(seed: number) {
-    ProbabilityBranch.mersenneTwister.setSeed(seed);
+  static setSeed(seed: number) {
+    ProbabilityBranch.generator.setSeed(seed);
     return this;
   }
 
@@ -29,16 +33,23 @@ class ProbabilityBranch {
    * Get the seed for the internal Mersenne Twister generator
    * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
    */
-  getSeed() {
-    return ProbabilityBranch.mersenneTwister.getSeed();
+  static getSeed() {
+    return ProbabilityBranch.generator.getSeed();
   }
 
   /**
    * Get how many random numbers have been generated since the Mersenne Twister generator is initialized
    * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
    */
+  static getCount() {
+    return ProbabilityBranch.generator.getCount();
+  }
+
+  /**
+   * Get how many times this instance has been run
+   */
   getCount() {
-    return ProbabilityBranch.mersenneTwister.getCount();
+    return this.count;
   }
 
   /**
@@ -78,7 +89,7 @@ class ProbabilityBranch {
    */
   run(probability: number = NOT_PROVIDED as any): unknown {
     if (Object.is(probability, NOT_PROVIDED)) {
-      probability = ProbabilityBranch.mersenneTwister.random() * this.sum;
+      probability = ProbabilityBranch.generator.random() * this.sum;
     }
 
     if (typeof probability !== 'number') {
@@ -89,20 +100,71 @@ class ProbabilityBranch {
       return;
     }
 
+    if (this.limit >= this.count) {
+      throw err(`This branch can only be run ${this.limit} time(s)`);
+    }
+
+    this.count++;
+
     let cumulative = 0;
-    for (let i = 0; i < this.probabilities.length; i++) {
+    const len = this.probabilities.length;
+    for (let i = 0; i < len; i++) {
       cumulative += this.probabilities[i];
       if (probability < cumulative) {
-        return this.handlers[i]();
+        const r = this.handlers[i]();
+        this.clear(PRIVATE); // clear the branch after running
+        return r;
       }
     }
 
     // & prevent some edge cases where the probability is very close to the sum
-    return this.handlers[this.handlers.length - 1]();
+    const r = this.handlers[len - 1]();
+    this.clear(PRIVATE); // clear the branch after running
+    return r;
   }
+
+  private clear(priv: symbol) {
+    preventPublicCalling(priv);
+    if (this.limit === 0) {
+      return;
+    }
+    if (this.limit > this.count) {
+      return;
+    }
+    this.sum = 0;
+    this.probabilities.length = 0;
+    this.handlers.length = 0;
+  }
+}
+
+interface ProbabilityBranchCreator {
+  (opts?: Partial<ProbabilityBranchOptions>): ProbabilityBranch;
+
+  setGenerator(generator: RandomGenerator): ProbabilityBranchCreator;
+  setSeed(seed: number): ProbabilityBranchCreator;
+  getSeed(): number;
+  getCount(): number;
 }
 
 /**
  * Create a new ProbabilityBranch instance
  */
-export const pb = () => new ProbabilityBranch(PRIVATE);
+export const pb: ProbabilityBranchCreator = (options?: Partial<ProbabilityBranchOptions>) =>
+  new ProbabilityBranch(PRIVATE, options);
+
+pb.setGenerator = function setGenerator(generator: RandomGenerator) {
+  return pb;
+};
+
+pb.setSeed = function setSeed(seed: number) {
+  gen.setSeed(seed);
+  return pb;
+};
+
+pb.getSeed = function getSeed() {
+  return gen.getSeed();
+};
+
+pb.getCount = function getCount() {
+  return gen.getCount();
+};

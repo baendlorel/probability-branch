@@ -10,7 +10,7 @@ const enum Mersenne {
   K = 1.0 / 0x100000000,
 }
 
-export class MersenneTwister {
+export class MersenneTwister implements RandomGenerator {
   private mt: number[] = new Array(Mersenne.N);
   private mti: number = Mersenne.N + 1;
   private seed: number;
