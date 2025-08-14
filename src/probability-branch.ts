@@ -1,16 +1,80 @@
+import { err } from './error.js';
+import { MersenneTwister } from './mersenne-twister.js';
+
 type Fn<T extends unknown[] = unknown[], R extends unknown = unknown> = (...args: T) => R;
 
+const MAX_NUM = Number.MAX_SAFE_INTEGER;
+const NOT_PROVIDED = Symbol('NOT_PROVIDED');
+
 class ProbabilityBranch {
-  static version = '__VERSION__';
+  static mersenneTwister = new MersenneTwister();
+
+  private sum = 0;
   private probabilities: number[] = [];
   private handlers: Fn[] = [];
-  private random: Fn<unknown[], number> = Math.random;
 
-  constructor() {}
+  /**
+   * Version of this package
+   */
+  get version() {
+    return '__VERSION__';
+  }
 
-  add(probability: number, handler: Fn) {
-    this.probabilities.push(probability);
+  /**
+   * Add a branch with a given probability and handler
+   * @param pointProbability the probability of this branch, must be a non-negative number
+   * @param handler the function to call when this branch is selected
+   */
+  add(pointProbability: number, handler: Fn) {
+    if (typeof pointProbability !== 'number') {
+      throw err(`'pointProbability' must be a number`);
+    }
+    if (typeof handler !== 'function') {
+      throw err(`'handler' must be a function`);
+    }
+    if (pointProbability === 0) {
+      return;
+    }
+    if (pointProbability < 0) {
+      throw err(`'pointProbability' must be non-negative`);
+    }
+    if (pointProbability > MAX_NUM) {
+      throw err(`'pointProbability' must < ${MAX_NUM}`);
+    }
+
+    this.sum += pointProbability;
+    this.probabilities.push(pointProbability);
     this.handlers.push(handler);
     return this;
+  }
+
+  /**
+   * Run this probability branch with a given probability
+   * @param probability if not provided, a random value will be generated with Mersenne Twister
+   * @returns what the handler returns
+   */
+  run(probability: number = NOT_PROVIDED as any): unknown {
+    if (Object.is(probability, NOT_PROVIDED)) {
+      probability = ProbabilityBranch.mersenneTwister.random() * this.sum;
+    }
+
+    if (typeof probability !== 'number') {
+      throw err(`'p' must be a number`);
+    }
+
+    if (this.sum === 0 || this.handlers.length === 0) {
+      return;
+    }
+
+    let cumulative = 0;
+    for (let i = 0; i < this.probabilities.length; i++) {
+      cumulative += this.probabilities[i];
+      if (probability < cumulative) {
+        return this.handlers[i]();
+      }
+    }
+
+    // & prevent some edge cases where the probability is very close to the sum
+    return this.handlers[this.handlers.length - 1]();
   }
 }

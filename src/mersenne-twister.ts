@@ -4,23 +4,40 @@ export class MersenneTwister {
   private static readonly MATRIX_A = 0x9908b0df;
   private static readonly UPPER_MASK = 0x80000000;
   private static readonly LOWER_MASK = 0x7fffffff;
+  private static readonly K = 1.0 / 0x100000000;
 
   private mt: number[] = new Array(MersenneTwister.N);
   private mti: number = MersenneTwister.N + 1;
+  private seed: number;
+  private count: number = 0;
 
-  constructor(seed: number = Date.now()) {
-    this.init_genrand(seed);
+  constructor(seed: number = 0) {
+    this.seed = seed;
+    this.init(seed);
   }
 
-  private init_genrand(s: number) {
+  private init(s: number) {
     this.mt[0] = s >>> 0;
     for (this.mti = 1; this.mti < MersenneTwister.N; this.mti++) {
       this.mt[this.mti] =
         (1812433253 * (this.mt[this.mti - 1] ^ (this.mt[this.mti - 1] >>> 30)) + this.mti) >>> 0;
     }
+    this.seed = s;
   }
 
-  public randomInt(): number {
+  getCount(): number {
+    return this.count;
+  }
+
+  getSeed(): number {
+    return this.seed;
+  }
+
+  setSeed(seed: number): void {
+    this.init(seed);
+  }
+
+  randomInt(): number {
     let y: number;
     const mag01 = [0x0, MersenneTwister.MATRIX_A];
 
@@ -52,11 +69,12 @@ export class MersenneTwister {
     y ^= (y << 7) & 0x9d2c5680;
     y ^= (y << 15) & 0xefc60000;
     y ^= y >>> 18;
+
+    this.count++;
     return y >>> 0;
   }
 
-  public random(): number {
-    // 返回 [0,1) 的浮点数
-    return this.randomInt() * (1.0 / 4294967296.0);
+  random(): number {
+    return this.randomInt() * MersenneTwister.K;
   }
 }
