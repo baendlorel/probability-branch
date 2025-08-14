@@ -1,8 +1,9 @@
 import { MAX_NUM, NOT_PROVIDED, PRIVATE } from './common.js';
-import { err, expectPrivate } from './expect.js';
+import { expect, expectPrivate, warn } from './expect.js';
 import { MersenneTwister } from './mersenne-twister.js';
 
-let gen: RandomGenerator = new MersenneTwister();
+const defaultGen = new MersenneTwister();
+let gen: RandomGenerator = defaultGen;
 class ProbabilityBranch {
   private sum: number = 0;
   private probabilities: number[] = [];
@@ -20,32 +21,6 @@ class ProbabilityBranch {
   }
 
   /**
-   * Set the seed for the internal Mersenne Twister generator
-   * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
-   * @param seed - The seed to initialize the Mersenne Twister generator
-   */
-  static setSeed(seed: number) {
-    ProbabilityBranch.generator.setSeed(seed);
-    return this;
-  }
-
-  /**
-   * Get the seed for the internal Mersenne Twister generator
-   * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
-   */
-  static getSeed() {
-    return ProbabilityBranch.generator.getSeed();
-  }
-
-  /**
-   * Get how many random numbers have been generated since the Mersenne Twister generator is initialized
-   * - The generator is **GLOBAL**, will affect all instances of ProbabilityBranch
-   */
-  static getCount() {
-    return ProbabilityBranch.generator.getCount();
-  }
-
-  /**
    * Get how many times this instance has been run
    */
   getCount() {
@@ -60,20 +35,13 @@ class ProbabilityBranch {
    * @param handler the function to call when this branch is selected
    */
   add(weight: number, handler: Fn): ProbabilityBranch {
-    if (typeof weight !== 'number') {
-      throw err(`'pointProbability' must be a number`);
-    }
-    if (typeof handler !== 'function') {
-      throw err(`'handler' must be a function`);
-    }
+    expect(typeof weight === 'number', `'pointProbability' must be a number`);
+    expect(typeof handler === 'function', `'handler' must be a function`);
+    expect(weight >= 0, `'pointProbability' must be non-negative`);
+    expect(weight <= MAX_NUM, `'pointProbability' must < ${MAX_NUM}`);
+
     if (weight === 0) {
       return this;
-    }
-    if (weight < 0) {
-      throw err(`'pointProbability' must be non-negative`);
-    }
-    if (weight > MAX_NUM) {
-      throw err(`'pointProbability' must < ${MAX_NUM}`);
     }
 
     this.sum += weight;
@@ -84,24 +52,21 @@ class ProbabilityBranch {
 
   /**
    * Run this probability branch with a given probability
-   * @param probability if not provided, a random value will be generated with a internal Mersenne Twister generator
+   * @param probability if not provided, a random value will be generated with a random number generator(default is Mersenne Twister)
    * @returns what the handler returns
    */
   run(probability: number = NOT_PROVIDED as any): unknown {
     if (Object.is(probability, NOT_PROVIDED)) {
-      probability = ProbabilityBranch.generator.random() * this.sum;
+      probability = gen.random() * this.sum;
     }
-
-    if (typeof probability !== 'number') {
-      throw err(`'p' must be a number`);
-    }
+    expect(this.limit >= this.count, `This branch can only be run ${this.limit} time(s)`);
+    expect(
+      typeof probability === 'number',
+      `'probability' must be a number, please check your input or the generator`
+    );
 
     if (this.sum === 0 || this.handlers.length === 0) {
       return;
-    }
-
-    if (this.limit >= this.count) {
-      throw err(`This branch can only be run ${this.limit} time(s)`);
     }
 
     this.count++;
@@ -140,31 +105,88 @@ class ProbabilityBranch {
 interface ProbabilityBranchCreator {
   (opts?: Partial<ProbabilityBranchOptions>): ProbabilityBranch;
 
+  /**
+   * Recover the default Mersenne Twister generator
+   * - this is the same instance as before
+   */
+  restoreDefaultGenerator(): ProbabilityBranchCreator;
+
+  /**
+   * Get the seed for the random number generator(default is Mersenne Twister)
+   * - The generator is **GLOBAL**, will affect all instances of `ProbabilityBranch`
+   */
   setGenerator(generator: RandomGenerator): ProbabilityBranchCreator;
+
+  /**
+   * Get the seed for the random number generator(default is Mersenne Twister)
+   * - The generator is **GLOBAL**, will affect all instances of `ProbabilityBranch`
+   * @param seed the seed to set for the random number generator
+   */
   setSeed(seed: number): ProbabilityBranchCreator;
+
+  /**
+   * Get the seed for the random number generator(default is Mersenne Twister)
+   * - The generator is **GLOBAL**, will affect all instances of `ProbabilityBranch`
+   */
   getSeed(): number;
+
+  /**
+   * Get how many random numbers have been generated since the generator is initialized
+   * - The generator is **GLOBAL**, will affect all instances of `ProbabilityBranch`
+   */
   getCount(): number;
 }
 
 /**
- * Create a new ProbabilityBranch instance
+ * Create a new `ProbabilityBranch` instance
+ * @param options.limit The maximum number of times this branch can be run, default is 1
  */
 export const pb: ProbabilityBranchCreator = (options?: Partial<ProbabilityBranchOptions>) =>
   new ProbabilityBranch(PRIVATE, options);
 
-pb.setGenerator = function setGenerator(generator: RandomGenerator) {
+pb.restoreDefaultGenerator = function () {
+  gen = defaultGen;
   return pb;
 };
 
-pb.setSeed = function setSeed(seed: number) {
+pb.setGenerator = function (generator: RandomGenerator) {
+  const { random, getCount, getSeed, setSeed } = generator;
+  expect(typeof random === 'function', `'random' must be an instance of MersenneTwister`);
+  const o = Object.create(null) as RandomGenerator;
+
+  if (typeof getCount === 'function') {
+    o.getCount = getCount.bind(generator);
+  } else {
+    o.getCount = () => NaN;
+    warn(`'getCount' is not implemented, set to () => NaN`);
+  }
+
+  if (typeof generator.getSeed === 'function') {
+    o.getSeed = getSeed.bind(generator);
+  } else {
+    o.getSeed = () => NaN;
+    warn(`'getSeed' is not implemented, set to () => NaN`);
+  }
+
+  if (typeof generator.setSeed === 'function') {
+    o.setSeed = setSeed.bind(generator);
+  } else {
+    o.setSeed = () => {};
+    warn(`'setSeed' is not implemented, set to () => {}`);
+  }
+
+  return pb;
+};
+
+pb.setSeed = function (seed: number) {
   gen.setSeed(seed);
   return pb;
 };
 
-pb.getSeed = function getSeed() {
+pb.getSeed = function () {
   return gen.getSeed();
 };
 
-pb.getCount = function getCount() {
+pb.getCount = function () {
   return gen.getCount();
 };

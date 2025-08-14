@@ -6,6 +6,10 @@ export function expect(o: unknown, message: string): void {
   }
 }
 
+export function warn(message: string): void {
+  console.warn('[__NAME__] ' + message);
+}
+
 export function expectPrivate(priv: symbol, msg = 'This method is private!') {
   if (priv !== PRIVATE) {
     throw new Error('[__NAME__] ' + msg);

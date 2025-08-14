@@ -10,7 +10,23 @@ interface ProbabilityBranchOptions {
 
 interface RandomGenerator {
   random(): number;
-  getSeed(): number;
+
+  /**
+   * Get the seed for the random number generator(default is Mersenne Twister)
+   * - The generator is **GLOBAL**, will affect all instances of `ProbabilityBranch`
+   * @param seed the seed to set for the random number generator
+   */
   setSeed(seed: number): void;
+
+  /**
+   * Get the seed for the random number generator(default is Mersenne Twister)
+   * - The generator is **GLOBAL**, will affect all instances of `ProbabilityBranch`
+   */
+  getSeed(): number;
+
+  /**
+   * Get how many random numbers have been generated since the generator is initialized
+   * - The generator is **GLOBAL**, will affect all instances of `ProbabilityBranch`
+   */
   getCount(): number;
 }
