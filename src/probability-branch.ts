@@ -1,13 +1,11 @@
+import { MAX_NUM, NOT_PROVIDED, PRIVATE } from './common.js';
 import { err } from './error.js';
 import { MersenneTwister } from './mersenne-twister.js';
 
 type Fn<T extends unknown[] = unknown[], R extends unknown = unknown> = (...args: T) => R;
 
-const MAX_NUM = Number.MAX_SAFE_INTEGER;
-const NOT_PROVIDED = Symbol('NOT_PROVIDED');
-
 class ProbabilityBranch {
-  static mersenneTwister = new MersenneTwister();
+  static mersenneTwister = new MersenneTwister(PRIVATE);
 
   private sum = 0;
   private probabilities: number[] = [];
@@ -78,3 +76,5 @@ class ProbabilityBranch {
     return this.handlers[this.handlers.length - 1]();
   }
 }
+
+export const pb = () => new ProbabilityBranch();

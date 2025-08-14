@@ -1,3 +1,6 @@
+import { PRIVATE } from './common.js';
+import { preventPublicCalling } from './error.js';
+
 export class MersenneTwister {
   private static readonly N = 624;
   private static readonly M = 397;
@@ -11,12 +14,15 @@ export class MersenneTwister {
   private seed: number;
   private count: number = 0;
 
-  constructor(seed: number = 0) {
-    this.seed = seed;
-    this.init(seed);
+  constructor(priv: symbol) {
+    preventPublicCalling(priv);
+    this.seed = 0;
+    this.init(PRIVATE, this.seed);
   }
 
-  private init(s: number) {
+  private init(priv: symbol, s: number) {
+    preventPublicCalling(priv);
+
     this.mt[0] = s >>> 0;
     for (this.mti = 1; this.mti < MersenneTwister.N; this.mti++) {
       this.mt[this.mti] =
@@ -45,10 +51,12 @@ export class MersenneTwister {
    * @param seed
    */
   setSeed(seed: number): void {
-    this.init(seed);
+    this.init(PRIVATE, seed);
   }
 
-  private randomInt(): number {
+  private randomInt(priv: symbol): number {
+    preventPublicCalling(priv);
+
     let y: number;
     const mag01 = [0x0, MersenneTwister.MATRIX_A];
 
@@ -85,7 +93,10 @@ export class MersenneTwister {
     return y >>> 0;
   }
 
+  /**
+   * Generate a random number in the range [0, 1)
+   */
   random(): number {
-    return this.randomInt() * MersenneTwister.K;
+    return this.randomInt(PRIVATE) * MersenneTwister.K;
   }
 }
