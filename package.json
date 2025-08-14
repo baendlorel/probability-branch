@@ -1,0 +1,41 @@
+{
+	"name": "<name>",
+	"version": "0.0.1",
+	"author": {
+		"name": "KasukabeTsumugi",
+		"email": "futami16237@gmail.com"
+	},
+	"description": "",
+	"type": "module",
+	"exports": {
+		"import": "./dist/index.mjs",
+		"types": "./dist/index.d.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"homepage": "https://github.com/baendlorel/<name>#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/baendlorel/<name>"
+	},
+	"keywords": [
+		"deep",
+		"clone",
+		"reflect",
+		"property",
+		"path",
+		"object",
+		"nested",
+		"typescript",
+		"javascript"
+	],
+	"scripts": {
+		"test": "clear & vitest",
+		"lint": "eslint .",
+		"cover": "clear & vitest --coverage",
+		"build": "rimraf dist && rollup -c"
+	},
+	"devDependencies": {},
+	"license": "MIT"
+}
