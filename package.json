@@ -1,11 +1,11 @@
 {
 	"name": "probability-branch",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"author": {
 		"name": "KasukabeTsumugi",
 		"email": "futami16237@gmail.com"
 	},
-	"description": "",
+	"description": "A lightweight TypeScript library for probabilistic branching and random selection, powered by the Mersenne Twister algorithm.",
 	"type": "module",
 	"exports": {
 		"import": "./dist/index.mjs",
@@ -20,15 +20,16 @@
 		"url": "https://github.com/baendlorel/probability-branch"
 	},
 	"keywords": [
-		"deep",
-		"clone",
-		"reflect",
-		"property",
-		"path",
-		"object",
-		"nested",
+		"probability",
+		"branch",
+		"random",
+		"random-generator",
+		"mersenne-twister",
 		"typescript",
-		"javascript"
+		"decision-tree",
+		"stochastic",
+		"utility",
+		"library"
 	],
 	"scripts": {
 		"test": "clear & vitest",
