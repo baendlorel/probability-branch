@@ -1,6 +1,6 @@
 {
-	"name": "<name>",
-	"version": "0.0.1",
+	"name": "probability-branch",
+	"version": "1.0.0",
 	"author": {
 		"name": "KasukabeTsumugi",
 		"email": "futami16237@gmail.com"
@@ -14,10 +14,10 @@
 	"files": [
 		"dist"
 	],
-	"homepage": "https://github.com/baendlorel/<name>#readme",
+	"homepage": "https://github.com/baendlorel/probability-branch#readme",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/baendlorel/<name>"
+		"url": "https://github.com/baendlorel/probability-branch"
 	},
 	"keywords": [
 		"deep",

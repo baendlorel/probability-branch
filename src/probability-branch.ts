@@ -1,5 +1,5 @@
 import { MAX_NUM, NOT_PROVIDED, PRIVATE } from './common.js';
-import { err } from './error.js';
+import { err, preventPublicCalling } from './error.js';
 import { MersenneTwister } from './mersenne-twister.js';
 
 type Fn<T extends unknown[] = unknown[], R extends unknown = unknown> = (...args: T) => R;
@@ -11,11 +11,8 @@ class ProbabilityBranch {
   private probabilities: number[] = [];
   private handlers: Fn[] = [];
 
-  /**
-   * Version of this package
-   */
-  get version() {
-    return '__VERSION__';
+  constructor(priv: symbol) {
+    preventPublicCalling(priv);
   }
 
   /**
@@ -49,7 +46,7 @@ class ProbabilityBranch {
    * @param pointProbability the probability of this branch, must be a non-negative number
    * @param handler the function to call when this branch is selected
    */
-  add(pointProbability: number, handler: Fn) {
+  add(pointProbability: number, handler: Fn): ProbabilityBranch {
     if (typeof pointProbability !== 'number') {
       throw err(`'pointProbability' must be a number`);
     }
@@ -57,7 +54,7 @@ class ProbabilityBranch {
       throw err(`'handler' must be a function`);
     }
     if (pointProbability === 0) {
-      return;
+      return this;
     }
     if (pointProbability < 0) {
       throw err(`'pointProbability' must be non-negative`);
@@ -103,4 +100,4 @@ class ProbabilityBranch {
   }
 }
 
-export const pb = () => new ProbabilityBranch();
+export const pb = () => new ProbabilityBranch(PRIVATE);
