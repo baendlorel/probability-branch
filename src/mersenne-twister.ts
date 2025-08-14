@@ -23,21 +23,32 @@ export class MersenneTwister {
         (1812433253 * (this.mt[this.mti - 1] ^ (this.mt[this.mti - 1] >>> 30)) + this.mti) >>> 0;
     }
     this.seed = s;
+    this.count = 0;
   }
 
+  /**
+   * Get how many random numbers have been generated since initialization
+   */
   getCount(): number {
     return this.count;
   }
 
+  /**
+   * Get the seed that once used to initialize this generator
+   */
   getSeed(): number {
     return this.seed;
   }
 
+  /**
+   * Initialize the generator with a new seed
+   * @param seed
+   */
   setSeed(seed: number): void {
     this.init(seed);
   }
 
-  randomInt(): number {
+  private randomInt(): number {
     let y: number;
     const mag01 = [0x0, MersenneTwister.MATRIX_A];
 
