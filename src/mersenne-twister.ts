@@ -16,9 +16,9 @@ export class MersenneTwister implements RandomGenerator {
   private seed: number;
   private count: number = 0;
 
-  constructor() {
-    this.seed = 0;
-    this.init(PRIVATE, this.seed);
+  constructor(seed = 0) {
+    this.seed = seed;
+    this.init(PRIVATE, seed);
   }
 
   private init(priv: symbol, s: number) {

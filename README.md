@@ -1,102 +1,133 @@
 # Probability Branch
 
-> A flexible probability branching utility for JavaScript/TypeScript projects. 🎲
+A lightweight TypeScript library for probabilistic branching and random selection, powered by the Mersenne Twister algorithm. 🎲✨
+
+---
 
 ## Features
 
-- Add multiple branches with custom probabilities
-- Execute a branch based on a given or random probability
-- Global Mersenne Twister random generator for reproducible results
-- Set and get the random seed for deterministic testing
-- Track how many random numbers have been generated
-- TypeScript support
+- Define multiple branches with custom probabilities and handlers
+- Select a branch randomly or deterministically
+- Limit the number of times a branch can be executed
+- Pluggable random number generator (default: Mersenne Twister)
+- Global control of random seed and generator
+
+---
 
 ## Installation
 
 ```bash
 pnpm add probability-branch
 # or
-yarn add probability-branch
-# or
 npm install probability-branch
 ```
+
+---
 
 ## Usage
 
 ```typescript
 import { pb } from 'probability-branch';
 
-const result = pb()
-  .add(1, () => 'A')
-  .add(2, () => 'B')
-  .add(3, () => 'C')
-  .run(); // Randomly returns 'A'(1/6), 'B'(1/3), or 'C'(1/2) based on probability
-
-await pb()
-  .add(0.1, () => 'A')
-  .add(0.5, () => 'B')
-  .add(0.4, () => 'C')
-  .run(); // Randomly returns 'A'(0.1), 'B'(0.5), or 'C'(0.4) based on probability
+// Create a probability branch instance
+pb()
+  .add(0.7, () => console.log('Branch A'))
+  .add(0.3, () => console.log('Branch B'))
+  .run(); // Randomly runs one branch based on weights
 ```
-
-### Set and Get Seed
-
-```typescript
-branch.setSeed(12345); // Set the global seed
-console.log(branch.getSeed()); // Get the current seed
-console.log(branch.getCount()); // How many random numbers have been generated
-```
-
-### Manual Probability
-
-```typescript
-branch.run(0); // Always selects the first branch
-branch.run(2.5); // Selects the branch based on cumulative probability
-```
-
-## API
-
-### pb()
-
-Create a new ProbabilityBranch instance.
-
-### ProbabilityBranch.add(pointProbability, handler)
-
-Add a branch with a given probability and handler function.
-
-- `pointProbability`: number, must be non-negative
-- `handler`: function to execute when this branch is selected
-
-### ProbabilityBranch.run(probability?)
-
-Run the branch selection. If `probability` is not provided, a random value is generated using the internal Mersenne Twister generator.
-
-### ProbabilityBranch.setSeed(seed)
-
-Set the seed for the internal random generator (global for all instances).
-
-### ProbabilityBranch.getSeed()
-
-Get the current seed of the internal random generator.
-
-### ProbabilityBranch.getCount()
-
-Get how many random numbers have been generated since initialization.
 
 ---
 
-## Bonus: Mersenne Twister 🎁
+## API Reference
 
-This package includes a standalone Mersenne Twister random number generator for advanced use cases.
+### `pb(options?: Partial<ProbabilityBranchOptions>): ProbabilityBranch`
+
+Create a new probability branch instance.
+
+- `options.limit`: Maximum number of times the branch can be run (default: 1, set to 0 for unlimited).
+- **Returns** An `ProbabilityBranch` instance.
+
+### `instance.add(weight: number, handler: Fn)`
+
+Add a branch with a given probability and handler.
+
+- `weight`: Non-negative number, probability weight for this branch.
+- `handler`: Function to execute if this branch is selected.
+
+### `instance.run(probability?: number)`
+
+Run the probability branch. If `probability` is not provided, a random value is generated.
+
+- Default random number generator is Mersenne Twister.
+
+- **Returns** the result of the selected handler.
+
+### `instance.getCount(): number`
+
+Get how many times this instance has been run.
+
+### Random Generator Control (Global)
+
+#### `pb.setSeed(seed: number): ProbabilityBranchCreator`
+
+Set the seed for the global random number generator.
+
+#### `pb.getSeed(): number`
+
+Get the current seed.
+
+#### `pb.getCount(): number`
+
+Get how many random numbers have been generated since initialization.
+
+#### `pb.setGenerator(generator: RandomGenerator): ProbabilityBranchCreator`
+
+Replace the global random number generator.
+
+- The generator must implement the `RandomGenerator` interface. [See example below](#example-custom-random-generator)
+
+#### `pb.restoreDefaultGenerator(): ProbabilityBranchCreator`
+
+Restore the default Mersenne Twister generator.
+
+## Example: Custom Random Generator
+
+In this interface, only `random` method is strictly required.
+
+Other methods will fallback to a default implementation that does nothing.
+
+```typescript
+class MyRandom implements RandomGenerator {
+  private seed = 42;
+  private count = 0;
+  random() {
+    this.count++;
+    return Math.random();
+  }
+  setSeed(seed: number) {
+    this.seed = seed;
+  }
+  getSeed() {
+    return this.seed;
+  }
+  getCount() {
+    return this.count;
+  }
+}
+
+pb.setGenerator(new MyRandom());
+pb.setSeed(123);
+```
+
+## Bonus: Mersenne Twister
+
+You can import the Mersenne Twister directly if you want to use it as a custom random generator:
 
 ```typescript
 import { MersenneTwister } from 'probability-branch';
 
-const mt = new MersenneTwister();
-mt.setSeed(2025);
-console.log(mt.random()); // Get a random float in [0, 1)
-console.log(mt.getSeed()); // Get the current seed
-console.log(mt.getCount()); // Get how many random numbers have been generated
+new MersenneTwister(); // equivalent to `new MersenneTwister(0)`
+new MersenneTwister(23);
 ```
 
 ---
@@ -104,3 +135,10 @@ console.log(mt.getCount()); // Get how many random numbers have been generated
 ## License
 
 MIT
+
+---
+
+## Author
+
+**KasukabeTsumugi**  
+Email: futami16237@gmail.com
