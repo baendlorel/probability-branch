@@ -2,6 +2,8 @@
 
 A lightweight TypeScript library for probabilistic branching and random selection, powered by the Mersenne Twister algorithm. 🎲✨
 
+For more awesome packages, check out [my homepage💛](https://baendlorel.github.io/?repoType=npm)
+
 ---
 
 ## Features
